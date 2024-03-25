@@ -22,6 +22,30 @@ type MemoryDatabase struct {
 	sqlite *gorm.DB
 }
 
+// TODO breadchris queue names may collide
+func (db *MemoryDatabase) LoadStatusForQueues(ctx context.Context) (map[string]bool, error) {
+	res := db.sqlite.Find(&Queue{})
+	if res.Error != nil {
+		return nil, res.Error
+	}
+	var queues []Queue
+	res = res.Scan(&queues)
+	if res.Error != nil {
+		return nil, res.Error
+	}
+
+	rc := map[string]bool{}
+	for _, queue := range queues {
+		rc[queue.Name] = queue.Paused
+	}
+	return rc, nil
+}
+
+func (db *MemoryDatabase) SetQueueStatus(ctx context.Context, name string, paused bool) error {
+	res := db.sqlite.Model(&Queue{}).Where("name = ?", name).Update("paused", paused)
+	return res.Error
+}
+
 func (db *MemoryDatabase) Hash(s string) string {
 	return s
 }

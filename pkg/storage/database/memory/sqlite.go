@@ -13,3 +13,9 @@ type ShareLink struct {
 	Query         string
 	ExpiresAt     time.Time
 }
+
+type Queue struct {
+	gorm.Model
+	Name   string `gorm:"index:idx_name,unique"`
+	Paused bool
+}
